@@ -18,6 +18,7 @@ import org.mtransit.parser.mt.data.MTrip;
 
 // http://bctransit.com/*/footer/open-data
 // http://bctransit.com/servlet/bctransit/data/GTFS.zip
+// http://bct2.baremetal.com:8080/GoogleTransit/BCTransit/google_transit.zip
 public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools {
 
 	public static void main(String[] args) {
@@ -144,21 +145,22 @@ public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools 
 			case 97: return COLOR_367D0F;
 			// @formatter:on
 			default:
-				return AGENCY_COLOR_BLUE;
+				System.out.println("Unexpected route color " + gRoute);
+				System.exit(-1);
+				return null;
 			}
 		}
 		return super.getRouteColor(gRoute);
 	}
-
-	private static final String EXCHANGE_SHORT = "Ex";
 
 	@Override
 	public void setTripHeadsign(MRoute mRoute, MTrip mTrip, GTrip gTrip, GSpec gtfs) {
 		mTrip.setHeadsignString(cleanTripHeadsign(gTrip.trip_headsign), gTrip.direction_id);
 	}
 
-	private static final Pattern EXCHANGE = Pattern.compile("(exchange)", Pattern.CASE_INSENSITIVE);
-	private static final String EXCHANGE_REPLACEMENT = EXCHANGE_SHORT;
+	private static final String EXCH = "Exch";
+	private static final Pattern EXCHANGE = Pattern.compile("((^|\\W){1}(exchange)(\\W|$){1})", Pattern.CASE_INSENSITIVE);
+	private static final String EXCHANGE_REPLACEMENT = "$2" + EXCH + "$4";
 
 	private static final Pattern STARTS_WITH_NUMBER = Pattern.compile("(^[\\d]+[\\S]*)", Pattern.CASE_INSENSITIVE);
 
@@ -183,6 +185,7 @@ public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools 
 		tripHeadsign = CLEAN_P2.matcher(tripHeadsign).replaceAll(CLEAN_P2_REPLACEMENT);
 		tripHeadsign = STARTS_WITH_NUMBER.matcher(tripHeadsign).replaceAll(StringUtils.EMPTY);
 		tripHeadsign = MSpec.cleanStreetTypes(tripHeadsign);
+		tripHeadsign = MSpec.cleanNumbers(tripHeadsign);
 		return MSpec.cleanLabel(tripHeadsign);
 	}
 
@@ -197,6 +200,7 @@ public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools 
 		gStopName = AT.matcher(gStopName).replaceAll(AT_REPLACEMENT);
 		gStopName = EXCHANGE.matcher(gStopName).replaceAll(EXCHANGE_REPLACEMENT);
 		gStopName = MSpec.cleanStreetTypes(gStopName);
+		gStopName = MSpec.cleanNumbers(gStopName);
 		return MSpec.cleanLabel(gStopName);
 	}
 }
