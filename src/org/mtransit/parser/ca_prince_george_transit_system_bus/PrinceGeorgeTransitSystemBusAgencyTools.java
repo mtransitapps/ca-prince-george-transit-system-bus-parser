@@ -1,6 +1,8 @@
 package org.mtransit.parser.ca_prince_george_transit_system_bus;
 
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
@@ -16,9 +18,8 @@ import org.mtransit.parser.mt.data.MRoute;
 import org.mtransit.parser.CleanUtils;
 import org.mtransit.parser.mt.data.MTrip;
 
-// http://bctransit.com/*/footer/open-data
-// http://bctransit.com/servlet/bctransit/data/GTFS.zip
-// http://bct2.baremetal.com:8080/GoogleTransit/BCTransit/google_transit.zip
+// https://bctransit.com/*/footer/open-data
+// https://bctransit.com/servlet/bctransit/data/GTFS - Prince George
 public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools {
 
 	public static void main(String[] args) {
@@ -96,6 +97,7 @@ public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools 
 	}
 
 	private static final String AGENCY_COLOR_GREEN = "34B233";// GREEN (from PDF Corporate Graphic Standards)
+	private static final String AGENCY_COLOR_BLUE = "002C77"; // BLUE (from PDF Corporate Graphic Standards)
 
 	private static final String AGENCY_COLOR = AGENCY_COLOR_GREEN;
 
@@ -144,7 +146,10 @@ public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools 
 			case 97: return COLOR_367D0F;
 			// @formatter:on
 			default:
-				System.out.println("Unexpected route color " + gRoute);
+				if (isGoodEnoughAccepted()) {
+					return AGENCY_COLOR_BLUE;
+				}
+				System.out.printf("\nUnexpected route color for %s!\n", gRoute);
 				System.exit(-1);
 				return null;
 			}
@@ -154,7 +159,61 @@ public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools 
 
 	@Override
 	public void setTripHeadsign(MRoute mRoute, MTrip mTrip, GTrip gTrip, GSpec gtfs) {
+		if (isGoodEnoughAccepted() && mRoute.getId() == 1L) {
+			if (gTrip.getDirectionId() == 0 && "Heritage Via Rainbow".equals(gTrip.getTripHeadsign())) {
+				mTrip.setHeadsignString("Rainbow", gTrip.getDirectionId());
+				return;
+			} else if (gTrip.getDirectionId() == 1 && "Heritage - Via 5th & Ospika".equals(gTrip.getTripHeadsign())) {
+				mTrip.setHeadsignString("5th & Ospika", gTrip.getDirectionId());
+				return;
+			}
+		}
 		mTrip.setHeadsignString(cleanTripHeadsign(gTrip.getTripHeadsign()), gTrip.getDirectionId());
+	}
+
+	@Override
+	public boolean mergeHeadsign(MTrip mTrip, MTrip mTripToMerge) {
+		List<String> headsignsValues = Arrays.asList(mTrip.getHeadsignValue(), mTripToMerge.getHeadsignValue());
+		if (mTrip.getRouteId() == 16l) {
+			if (Arrays.asList( //
+					"Unbc", //
+					"College Hgts", //
+					"UNBC/College Hts" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("UNBC/College Hts", mTrip.getHeadsignId());
+				return true;
+			}
+		} else if (mTrip.getRouteId() == 46l) {
+			if (Arrays.asList( //
+					"Pine Ctr", //
+					"Downtown" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("Downtown", mTrip.getHeadsignId());
+				return true;
+			}
+		} else if (mTrip.getRouteId() == 88l) {
+			if (Arrays.asList( //
+					"Westgate", //
+					"Westgate Mall" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("Westgate Mall", mTrip.getHeadsignId());
+				return true;
+			}
+		} else if (mTrip.getRouteId() == 89l) {
+			if (Arrays.asList( //
+					"Hart", //
+					"Hart Ctr" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("Hart Ctr", mTrip.getHeadsignId());
+				return true;
+			}
+		}
+		if (isGoodEnoughAccepted()) {
+			return super.mergeHeadsign(mTrip, mTripToMerge);
+		}
+		System.out.printf("\nUnexpected trips to merge: %s & %s!\n", mTrip, mTripToMerge);
+		System.exit(-1);
+		return false;
 	}
 
 	private static final String EXCH = "Exch";
@@ -190,13 +249,11 @@ public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools 
 
 	private static final Pattern STARTS_WITH_BOUND = Pattern.compile("(^(east|west|north|south)bound)", Pattern.CASE_INSENSITIVE);
 
-	private static final Pattern AT = Pattern.compile("( at )", Pattern.CASE_INSENSITIVE);
-	private static final String AT_REPLACEMENT = " / ";
 
 	@Override
 	public String cleanStopName(String gStopName) {
 		gStopName = STARTS_WITH_BOUND.matcher(gStopName).replaceAll(StringUtils.EMPTY);
-		gStopName = AT.matcher(gStopName).replaceAll(AT_REPLACEMENT);
+		gStopName = CleanUtils.CLEAN_AT.matcher(gStopName).replaceAll(CleanUtils.CLEAN_AT_REPLACEMENT);
 		gStopName = EXCHANGE.matcher(gStopName).replaceAll(EXCHANGE_REPLACEMENT);
 		gStopName = CleanUtils.cleanStreetTypes(gStopName);
 		gStopName = CleanUtils.cleanNumbers(gStopName);
