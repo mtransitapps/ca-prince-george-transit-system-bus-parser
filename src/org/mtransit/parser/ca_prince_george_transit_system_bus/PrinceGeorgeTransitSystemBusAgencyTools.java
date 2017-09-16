@@ -130,6 +130,7 @@ public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools 
 			// @formatter:off
 			case 1: return COLOR_004B8D;
 			case 5: return COLOR_F8931E;
+			case 10: return "8CC640";
 			case 11: return COLOR_8CC63F;
 			case 12: return COLOR_49176D;
 			case 15: return COLOR_EC1D8D;
@@ -174,7 +175,15 @@ public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools 
 	@Override
 	public boolean mergeHeadsign(MTrip mTrip, MTrip mTripToMerge) {
 		List<String> headsignsValues = Arrays.asList(mTrip.getHeadsignValue(), mTripToMerge.getHeadsignValue());
-		if (mTrip.getRouteId() == 16l) {
+		if (mTrip.getRouteId() == 12l) {
+			if (Arrays.asList( //
+					"Westgate", //
+					"Parkridge" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("Parkridge", mTrip.getHeadsignId());
+				return true;
+			}
+		} else if (mTrip.getRouteId() == 16l) {
 			if (Arrays.asList( //
 					"Unbc", //
 					"College Hgts", //
