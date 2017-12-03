@@ -170,13 +170,13 @@ public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools 
 	static {
 		HashMap<Long, RouteTripSpec> map2 = new HashMap<Long, RouteTripSpec>();
 		map2.put(1L, new RouteTripSpec(1L, //
-				0, MTrip.HEADSIGN_TYPE_STRING, "Rainbow", //
-				1, MTrip.HEADSIGN_TYPE_STRING, "5th & Ospika") //
+				0, MTrip.HEADSIGN_TYPE_STRING, "CW", //
+				1, MTrip.HEADSIGN_TYPE_STRING, "CCW") //
 				.addTripSort(0, //
 						Arrays.asList(new String[] { //
 						"180032", // Westbound 9th at Edmonton
 								"180019", // ++
-								"105014", // Spruceland Exchange Bay D
+								"105013", // Spruceland Exchange Bay B
 								"105076", // !=
 								"105355", // ++
 								"105247", // !=
@@ -184,7 +184,7 @@ public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools 
 						})) //
 				.addTripSort(1, //
 						Arrays.asList(new String[] { //
-						"105014", // Spruceland Exchange Bay D
+						"105013", // Spruceland Exchange Bay B
 								"105101", // xx
 								"105102", // !=
 								"105317", // ++
@@ -220,6 +220,7 @@ public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools 
 		}
 		return super.splitTripStop(mRoute, gTrip, gTripStop, splitTrips, routeGTFS);
 	}
+
 	@Override
 	public void setTripHeadsign(MRoute mRoute, MTrip mTrip, GTrip gTrip, GSpec gtfs) {
 		if (ALL_ROUTE_TRIPS2.containsKey(mRoute.getId())) {
@@ -313,7 +314,6 @@ public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools 
 	}
 
 	private static final Pattern STARTS_WITH_BOUND = Pattern.compile("(^(east|west|north|south)bound)", Pattern.CASE_INSENSITIVE);
-
 
 	@Override
 	public String cleanStopName(String gStopName) {
