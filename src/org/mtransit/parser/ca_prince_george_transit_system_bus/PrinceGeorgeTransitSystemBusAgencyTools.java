@@ -257,6 +257,14 @@ public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools 
 				mTrip.setHeadsignString("Downtown", mTrip.getHeadsignId());
 				return true;
 			}
+		} else if (mTrip.getRouteId() == 55l) {
+			if (Arrays.asList( //
+					"Pc", //
+					"Downtown" //
+			).containsAll(headsignsValues)) {
+				mTrip.setHeadsignString("Downtown", mTrip.getHeadsignId());
+				return true;
+			}
 		} else if (mTrip.getRouteId() == 88l) {
 			if (Arrays.asList( //
 					"Westgate", //
@@ -273,9 +281,6 @@ public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools 
 				mTrip.setHeadsignString("Hart Ctr", mTrip.getHeadsignId());
 				return true;
 			}
-		}
-		if (isGoodEnoughAccepted()) {
-			return super.mergeHeadsign(mTrip, mTripToMerge);
 		}
 		System.out.printf("\nUnexpected trips to merge: %s & %s!\n", mTrip, mTripToMerge);
 		System.exit(-1);
