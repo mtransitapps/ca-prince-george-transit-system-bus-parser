@@ -160,9 +160,6 @@ public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools 
 			case 97: return COLOR_367D0F;
 			// @formatter:on
 			default:
-				if (isGoodEnoughAccepted()) {
-					return AGENCY_COLOR_BLUE;
-				}
 				System.out.printf("\nUnexpected route color for %s!\n", gRoute);
 				System.exit(-1);
 				return null;
@@ -200,7 +197,6 @@ public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools 
 								"105220", // xx
 								"105101", // xx
 								"105013", // Spruceland Exchange Bay B
-
 						})) //
 				.compileBothTripSort());
 		ALL_ROUTE_TRIPS2 = map2;
