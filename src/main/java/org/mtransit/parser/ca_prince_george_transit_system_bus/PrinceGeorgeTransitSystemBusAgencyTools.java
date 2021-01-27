@@ -236,58 +236,20 @@ public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools 
 	}
 
 	@Override
-	public boolean mergeHeadsign(@NotNull MTrip mTrip, @NotNull MTrip mTripToMerge) {
-		List<String> headsignsValues = Arrays.asList(mTrip.getHeadsignValue(), mTripToMerge.getHeadsignValue());
-		if (mTrip.getRouteId() == 12L) {
-			if (Arrays.asList( //
-					"Westgate", //
-					"Parkridge" //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Parkridge", mTrip.getHeadsignId());
-				return true;
-			}
-		} else if (mTrip.getRouteId() == 16L) {
-			if (Arrays.asList( //
-					UNBC, //
-					"College Hgts", //
-					UNBC + "/College Hts" //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString(UNBC + "/College Hts", mTrip.getHeadsignId());
-				return true;
-			}
-		} else if (mTrip.getRouteId() == 46L) {
-			if (Arrays.asList( //
-					"Pine Ctr", //
-					"Downtown" //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Downtown", mTrip.getHeadsignId());
-				return true;
-			}
-		} else if (mTrip.getRouteId() == 55L) {
-			if (Arrays.asList( //
-					"Pc", //
-					"Downtown" //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Downtown", mTrip.getHeadsignId());
-				return true;
-			}
-		} else if (mTrip.getRouteId() == 88L) {
-			if (Arrays.asList( //
-					"Westgate", //
-					"Westgate Mall" //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Westgate Mall", mTrip.getHeadsignId());
-				return true;
-			}
-		} else if (mTrip.getRouteId() == 89L) {
-			if (Arrays.asList( //
-					"Hart", //
-					"Hart Ctr" //
-			).containsAll(headsignsValues)) {
-				mTrip.setHeadsignString("Hart Ctr", mTrip.getHeadsignId());
-				return true;
-			}
+	public boolean directionFinderEnabled() {
+		return true;
+	}
+
+	@Override
+	public boolean directionFinderEnabled(long routeId, @NotNull GRoute gRoute) {
+		if (routeId == 1L) {
+			return false; // DISABLED because 2 directions w/ same head-sign first/last stop #CW_CCW
 		}
+		return super.directionFinderEnabled(routeId, gRoute);
+	}
+
+	@Override
+	public boolean mergeHeadsign(@NotNull MTrip mTrip, @NotNull MTrip mTripToMerge) {
 		throw new MTLog.Fatal("Unexpected trips to merge: %s & %s!", mTrip, mTripToMerge);
 	}
 
