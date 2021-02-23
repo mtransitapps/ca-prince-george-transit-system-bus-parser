@@ -2,99 +2,34 @@ package org.mtransit.parser.ca_prince_george_transit_system_bus;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.mtransit.parser.CleanUtils;
+import org.mtransit.commons.CleanUtils;
+import org.mtransit.commons.StringUtils;
 import org.mtransit.parser.DefaultAgencyTools;
 import org.mtransit.parser.MTLog;
-import org.mtransit.parser.Pair;
-import org.mtransit.parser.SplitUtils;
-import org.mtransit.parser.SplitUtils.RouteTripSpec;
-import org.mtransit.parser.StringUtils;
-import org.mtransit.parser.Utils;
-import org.mtransit.parser.gtfs.data.GCalendar;
-import org.mtransit.parser.gtfs.data.GCalendarDate;
 import org.mtransit.parser.gtfs.data.GRoute;
-import org.mtransit.parser.gtfs.data.GSpec;
-import org.mtransit.parser.gtfs.data.GStop;
-import org.mtransit.parser.gtfs.data.GTrip;
-import org.mtransit.parser.gtfs.data.GTripStop;
 import org.mtransit.parser.mt.data.MAgency;
-import org.mtransit.parser.mt.data.MRoute;
-import org.mtransit.parser.mt.data.MTrip;
-import org.mtransit.parser.mt.data.MTripStop;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.regex.Pattern;
 
-import static org.mtransit.parser.StringUtils.EMPTY;
+import static org.mtransit.commons.Constants.SPACE_;
 
 // https://www.bctransit.com/open-data
 // https://www.bctransit.com/data/gtfs/prince-george.zip
 public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools {
 
-	public static void main(@Nullable String[] args) {
-		if (args == null || args.length == 0) {
-			args = new String[3];
-			args[0] = "input/gtfs.zip";
-			args[1] = "../../mtransitapps/ca-prince-george-transit-system-bus-android/res/raw/";
-			args[2] = ""; // files-prefix
-		}
+	public static void main(@NotNull String[] args) {
 		new PrinceGeorgeTransitSystemBusAgencyTools().start(args);
 	}
 
-	@Nullable
-	private HashSet<Integer> serviceIdInts;
-
 	@Override
-	public void start(@NotNull String[] args) {
-		MTLog.log("Generating Prince George Transit System bus data...");
-		long start = System.currentTimeMillis();
-		this.serviceIdInts = extractUsefulServiceIdInts(args, this, true);
-		super.start(args);
-		MTLog.log("Generating Prince George Transit System bus data... DONE in %s.", Utils.getPrettyDuration(System.currentTimeMillis() - start));
+	public boolean defaultExcludeEnabled() {
+		return true;
 	}
 
+	@NotNull
 	@Override
-	public boolean excludingAll() {
-		return this.serviceIdInts != null && this.serviceIdInts.isEmpty();
-	}
-
-	@Override
-	public boolean excludeCalendar(@NotNull GCalendar gCalendar) {
-		if (this.serviceIdInts != null) {
-			return excludeUselessCalendarInt(gCalendar, this.serviceIdInts);
-		}
-		return super.excludeCalendar(gCalendar);
-	}
-
-	@Override
-	public boolean excludeCalendarDate(@NotNull GCalendarDate gCalendarDates) {
-		if (this.serviceIdInts != null) {
-			return excludeUselessCalendarDateInt(gCalendarDates, this.serviceIdInts);
-		}
-		return super.excludeCalendarDate(gCalendarDates);
-	}
-
-	private static final String INCLUDE_AGENCY_ID = "9"; // Prince George Transit System only
-
-	@Override
-	public boolean excludeRoute(@NotNull GRoute gRoute) {
-		//noinspection deprecation
-		if (!INCLUDE_AGENCY_ID.equals(gRoute.getAgencyId())) {
-			return true;
-		}
-		return super.excludeRoute(gRoute);
-	}
-
-	@Override
-	public boolean excludeTrip(@NotNull GTrip gTrip) {
-		if (this.serviceIdInts != null) {
-			return excludeUselessTripInt(gTrip, this.serviceIdInts);
-		}
-		return super.excludeTrip(gTrip);
+	public String getAgencyName() {
+		return "Prince George TS";
 	}
 
 	@NotNull
@@ -110,8 +45,7 @@ public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools 
 
 	@NotNull
 	@Override
-	public String getRouteLongName(@NotNull GRoute gRoute) {
-		String routeLongName = gRoute.getRouteLongNameOrDefault();
+	public String cleanRouteLongName(@NotNull String routeLongName) {
 		routeLongName = CleanUtils.cleanSlashes(routeLongName);
 		routeLongName = CleanUtils.cleanNumbers(routeLongName);
 		routeLongName = CleanUtils.cleanStreetTypes(routeLongName);
@@ -162,111 +96,36 @@ public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools 
 		return super.getRouteColor(gRoute);
 	}
 
-	private static final HashMap<Long, RouteTripSpec> ALL_ROUTE_TRIPS2;
-
-	static {
-		HashMap<Long, RouteTripSpec> map2 = new HashMap<>();
-		//noinspection deprecation
-		map2.put(1L, new RouteTripSpec(1L, //
-				0, MTrip.HEADSIGN_TYPE_STRING, "CW", //
-				1, MTrip.HEADSIGN_TYPE_STRING, "CCW") //
-				.addTripSort(0, //
-						Arrays.asList(//
-								"180032", // Westbound 9th at Edmonton
-								"180019", // ++
-								"180018", // !=
-								"105220", // xx
-								"105101", // xx
-								"105013", // Spruceland Exchange Bay B
-								"105076", // !=
-								"105355", // ++
-								"105247", // !=
-								"105013" // Spruceland Exchange Bay B
-						)) //
-				.addTripSort(1, //
-						Arrays.asList(//
-								"105013", // Spruceland Exchange Bay B
-								"105101", // xx
-								"105102", // !=
-								"105317", // ++
-								"105329", // !=
-								"105220", // xx
-								"105101", // xx
-								"105013" // Spruceland Exchange Bay B
-						)) //
-				.compileBothTripSort());
-		ALL_ROUTE_TRIPS2 = map2;
-	}
-
-	@Override
-	public int compareEarly(long routeId, @NotNull List<MTripStop> list1, @NotNull List<MTripStop> list2, @NotNull MTripStop ts1, @NotNull MTripStop ts2, @NotNull GStop ts1GStop, @NotNull GStop ts2GStop) {
-		if (ALL_ROUTE_TRIPS2.containsKey(routeId)) {
-			return ALL_ROUTE_TRIPS2.get(routeId).compare(routeId, list1, list2, ts1, ts2, ts1GStop, ts2GStop, this);
-		}
-		return super.compareEarly(routeId, list1, list2, ts1, ts2, ts1GStop, ts2GStop);
-	}
-
-	@NotNull
-	@Override
-	public ArrayList<MTrip> splitTrip(@NotNull MRoute mRoute, @Nullable GTrip gTrip, @NotNull GSpec gtfs) {
-		if (ALL_ROUTE_TRIPS2.containsKey(mRoute.getId())) {
-			return ALL_ROUTE_TRIPS2.get(mRoute.getId()).getAllTrips();
-		}
-		return super.splitTrip(mRoute, gTrip, gtfs);
-	}
-
-	@NotNull
-	@Override
-	public Pair<Long[], Integer[]> splitTripStop(@NotNull MRoute mRoute, @NotNull GTrip gTrip, @NotNull GTripStop gTripStop, @NotNull ArrayList<MTrip> splitTrips, @NotNull GSpec routeGTFS) {
-		if (ALL_ROUTE_TRIPS2.containsKey(mRoute.getId())) {
-			return SplitUtils.splitTripStop(mRoute, gTrip, gTripStop, routeGTFS, ALL_ROUTE_TRIPS2.get(mRoute.getId()), this);
-		}
-		return super.splitTripStop(mRoute, gTrip, gTripStop, splitTrips, routeGTFS);
-	}
-
-	@Override
-	public void setTripHeadsign(@NotNull MRoute mRoute, @NotNull MTrip mTrip, @NotNull GTrip gTrip, @NotNull GSpec gtfs) {
-		if (ALL_ROUTE_TRIPS2.containsKey(mRoute.getId())) {
-			return; // split
-		}
-		mTrip.setHeadsignString(
-				cleanTripHeadsign(gTrip.getTripHeadsignOrDefault()),
-				gTrip.getDirectionIdOrDefault()
-		);
-	}
-
 	@Override
 	public boolean directionFinderEnabled() {
 		return true;
 	}
 
+	private static final Pattern RTE_1_HERITAGE_ = Pattern.compile("(^heritage (- )?(.*))", Pattern.CASE_INSENSITIVE); // fix route 1
+	private static final String RTE_1_HERITAGE_REPLACEMENT = "$3";
+
+	@NotNull
 	@Override
-	public boolean directionFinderEnabled(long routeId, @NotNull GRoute gRoute) {
-		if (routeId == 1L) {
-			return false; // DISABLED because 2 directions w/ same head-sign first/last stop #CW_CCW
-		}
-		return super.directionFinderEnabled(routeId, gRoute);
+	public String cleanDirectionHeadsign(boolean fromStopName, @NotNull String directionHeadSign) {
+		directionHeadSign = RTE_1_HERITAGE_.matcher(directionHeadSign).replaceAll(RTE_1_HERITAGE_REPLACEMENT); // FIX route #1
+		directionHeadSign = super.cleanDirectionHeadsign(fromStopName, directionHeadSign);
+		return directionHeadSign;
 	}
 
-	@Override
-	public boolean mergeHeadsign(@NotNull MTrip mTrip, @NotNull MTrip mTripToMerge) {
-		throw new MTLog.Fatal("Unexpected trips to merge: %s & %s!", mTrip, mTripToMerge);
-	}
+	private static final Pattern _DASH_ = Pattern.compile("( - )");
 
-	private static final Pattern STARTS_WITH_NUMBER = Pattern.compile("(^[\\d]+[\\S]*)", Pattern.CASE_INSENSITIVE);
-
-	private static final Pattern ENDS_WITH_DASH_ = Pattern.compile("(\\s*-\\s*$)", Pattern.CASE_INSENSITIVE);
-
-	private static final String UNBC = "UNBC";
 	private static final Pattern UNBC_ = CleanUtils.cleanWords("unbc");
-	private static final String UNBC_REPLACEMENT = CleanUtils.cleanWordsReplacement(UNBC);
+	private static final String UNBC_REPLACEMENT = CleanUtils.cleanWordsReplacement("UNBC");
+
+	private static final Pattern KRSS_ = CleanUtils.cleanWords("krss");
+	private static final String KRSS_REPLACEMENT = CleanUtils.cleanWordsReplacement("KRSS");
 
 	@NotNull
 	@Override
 	public String cleanTripHeadsign(@NotNull String tripHeadsign) {
+		tripHeadsign = _DASH_.matcher(tripHeadsign).replaceAll(SPACE_);
 		tripHeadsign = CleanUtils.keepToAndRemoveVia(tripHeadsign);
-		tripHeadsign = STARTS_WITH_NUMBER.matcher(tripHeadsign).replaceAll(EMPTY);
-		tripHeadsign = ENDS_WITH_DASH_.matcher(tripHeadsign).replaceAll(EMPTY);
+		tripHeadsign = KRSS_.matcher(tripHeadsign).replaceAll(KRSS_REPLACEMENT);
 		tripHeadsign = UNBC_.matcher(tripHeadsign).replaceAll(UNBC_REPLACEMENT);
 		tripHeadsign = CleanUtils.cleanBounds(tripHeadsign);
 		tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
@@ -277,7 +136,9 @@ public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools 
 	@NotNull
 	@Override
 	public String cleanStopName(@NotNull String gStopName) {
+		gStopName = KRSS_.matcher(gStopName).replaceAll(KRSS_REPLACEMENT);
 		gStopName = UNBC_.matcher(gStopName).replaceAll(UNBC_REPLACEMENT);
+		gStopName = CleanUtils.CLEAN_AND.matcher(gStopName).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
 		gStopName = CleanUtils.CLEAN_AT.matcher(gStopName).replaceAll(CleanUtils.CLEAN_AT_REPLACEMENT);
 		gStopName = CleanUtils.cleanBounds(gStopName);
 		gStopName = CleanUtils.cleanStreetTypes(gStopName);
