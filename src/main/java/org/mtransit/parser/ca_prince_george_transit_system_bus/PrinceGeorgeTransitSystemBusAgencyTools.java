@@ -1,17 +1,18 @@
 package org.mtransit.parser.ca_prince_george_transit_system_bus;
 
+import static org.mtransit.commons.Constants.SPACE_;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mtransit.commons.CleanUtils;
-import org.mtransit.commons.StringUtils;
 import org.mtransit.parser.DefaultAgencyTools;
 import org.mtransit.parser.MTLog;
 import org.mtransit.parser.gtfs.data.GRoute;
 import org.mtransit.parser.mt.data.MAgency;
 
+import java.util.List;
+import java.util.Locale;
 import java.util.regex.Pattern;
-
-import static org.mtransit.commons.Constants.SPACE_;
 
 // https://www.bctransit.com/open-data
 // https://www.bctransit.com/data/gtfs/prince-george.zip
@@ -19,6 +20,12 @@ public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools 
 
 	public static void main(@NotNull String[] args) {
 		new PrinceGeorgeTransitSystemBusAgencyTools().start(args);
+	}
+
+	@Nullable
+	@Override
+	public List<Locale> getSupportedLanguages() {
+		return LANG_EN;
 	}
 
 	@Override
@@ -39,8 +46,18 @@ public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools 
 	}
 
 	@Override
-	public long getRouteId(@NotNull GRoute gRoute) {
-		return Long.parseLong(gRoute.getRouteShortName()); // use route short name as route ID
+	public boolean defaultRouteIdEnabled() {
+		return true;
+	}
+
+	@Override
+	public boolean useRouteShortNameForRouteId() {
+		return true;
+	}
+
+	@Override
+	public boolean defaultRouteLongNameEnabled() {
+		return true;
 	}
 
 	@NotNull
@@ -50,6 +67,11 @@ public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools 
 		routeLongName = CleanUtils.cleanNumbers(routeLongName);
 		routeLongName = CleanUtils.cleanStreetTypes(routeLongName);
 		return CleanUtils.cleanLabel(routeLongName);
+	}
+
+	@Override
+	public boolean defaultAgencyColorEnabled() {
+		return true;
 	}
 
 	private static final String AGENCY_COLOR_GREEN = "34B233";// GREEN (from PDF Corporate Graphic Standards)
@@ -66,34 +88,31 @@ public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools 
 	@SuppressWarnings("DuplicateBranchesInSwitch")
 	@Nullable
 	@Override
-	public String getRouteColor(@NotNull GRoute gRoute) {
-		if (StringUtils.isEmpty(gRoute.getRouteColor())) {
-			int rsn = Integer.parseInt(gRoute.getRouteShortName());
-			switch (rsn) {
-			// @formatter:off
-			case 1: return "004B8D";
-			case 5: return "F8931E";
-			case 10: return "8CC640";
-			case 11: return "8CC63F";
-			case 12: return "49176D";
-			case 15: return "EC1D8D";
-			case 16: return "00B9BF";
-			case 17: return "B3AA7E";
-			case 18: return "B3AA7E";
-			case 46: return "8D0B3A";
-			case 47: return "00AA4F";
-			case 55: return "00AEEF";
-			case 88: return "FFC10E";
-			case 89: return "0073AE";
-			case 91: return "BF83B9";
-			case 96: return "B5BB19";
-			case 97: return "367D0F";
-			// @formatter:on
-			default:
-				throw new MTLog.Fatal("Unexpected route color for %s!", gRoute);
-			}
+	public String provideMissingRouteColor(@NotNull GRoute gRoute) {
+		final int rsn = Integer.parseInt(gRoute.getRouteShortName());
+		switch (rsn) {
+		// @formatter:off
+		case 1: return "004B8D";
+		case 5: return "F8931E";
+		case 10: return "8CC640";
+		case 11: return "8CC63F";
+		case 12: return "49176D";
+		case 15: return "EC1D8D";
+		case 16: return "00B9BF";
+		case 17: return "B3AA7E";
+		case 18: return "B3AA7E";
+		case 46: return "8D0B3A";
+		case 47: return "00AA4F";
+		case 55: return "00AEEF";
+		case 88: return "FFC10E";
+		case 89: return "0073AE";
+		case 91: return "BF83B9";
+		case 96: return "B5BB19";
+		case 97: return "367D0F";
+		// @formatter:on
+		default:
+			throw new MTLog.Fatal("Unexpected route color for %s!", gRoute);
 		}
-		return super.getRouteColor(gRoute);
 	}
 
 	@Override
