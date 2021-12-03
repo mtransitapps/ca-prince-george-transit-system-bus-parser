@@ -101,6 +101,7 @@ public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools 
 		case 16: return "00B9BF";
 		case 17: return "B3AA7E";
 		case 18: return "B3AA7E";
+		case 19: return null; // TODO
 		case 46: return "8D0B3A";
 		case 47: return "00AA4F";
 		case 55: return "00AEEF";
@@ -109,9 +110,10 @@ public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools 
 		case 91: return "BF83B9";
 		case 96: return "B5BB19";
 		case 97: return "367D0F";
+		case 105: return null; // TODO
 		// @formatter:on
 		default:
-			throw new MTLog.Fatal("Unexpected route color for %s!", gRoute);
+			throw new MTLog.Fatal("Unexpected route color for %s!", gRoute.toStringPlus());
 		}
 	}
 
