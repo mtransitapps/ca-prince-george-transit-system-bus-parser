@@ -5,6 +5,7 @@ import static org.mtransit.commons.Constants.SPACE_;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mtransit.commons.CleanUtils;
+import org.mtransit.commons.Cleaner;
 import org.mtransit.parser.DefaultAgencyTools;
 import org.mtransit.parser.MTLog;
 import org.mtransit.parser.gtfs.data.GRoute;
@@ -12,10 +13,8 @@ import org.mtransit.parser.mt.data.MAgency;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.regex.Pattern;
 
 // https://www.bctransit.com/open-data
-// https://www.bctransit.com/data/gtfs/prince-george.zip
 public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools {
 
 	public static void main(@NotNull String[] args) {
@@ -101,7 +100,7 @@ public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools 
 		case 16: return "00B9BF";
 		case 17: return "B3AA7E";
 		case 18: return "B3AA7E";
-		case 19: return null; // TODO
+		case 19: return "B978B3";
 		case 46: return "8D0B3A";
 		case 47: return "00AA4F";
 		case 55: return "00AEEF";
@@ -110,7 +109,9 @@ public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools 
 		case 91: return "BF83B9";
 		case 96: return "B5BB19";
 		case 97: return "367D0F";
-		case 105: return null; // TODO
+		case 105: return "776EAF";
+		case 161: return "0F6534";
+		case 162: return null; // TODO
 		// @formatter:on
 		default:
 			throw new MTLog.Fatal("Unexpected route color for %s!", gRoute.toStringPlus());
@@ -122,32 +123,44 @@ public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools 
 		return true;
 	}
 
-	private static final Pattern RTE_1_HERITAGE_ = Pattern.compile("(^heritage (- )?(.*))", Pattern.CASE_INSENSITIVE); // fix route 1
-	private static final String RTE_1_HERITAGE_REPLACEMENT = "$3";
+	private static final Cleaner RTE_1_HERITAGE_ = new Cleaner(
+			"(^heritage (- )?(.*))",
+			"$3",
+			true
+	); // fix route 1
 
 	@NotNull
 	@Override
-	public String cleanDirectionHeadsign(boolean fromStopName, @NotNull String directionHeadSign) {
-		directionHeadSign = RTE_1_HERITAGE_.matcher(directionHeadSign).replaceAll(RTE_1_HERITAGE_REPLACEMENT); // FIX route #1
-		directionHeadSign = super.cleanDirectionHeadsign(fromStopName, directionHeadSign);
+	public String cleanDirectionHeadsign(int directionId, boolean fromStopName, @NotNull String directionHeadSign) {
+		directionHeadSign = RTE_1_HERITAGE_.clean(directionHeadSign); // FIX route #1
+		directionHeadSign = super.cleanDirectionHeadsign(directionId, fromStopName, directionHeadSign);
 		return directionHeadSign;
 	}
 
-	private static final Pattern _DASH_ = Pattern.compile("( - )");
+	private static final Cleaner _DASH_ = new Cleaner(
+			"( - )",
+			SPACE_
+	);
 
-	private static final Pattern UNBC_ = CleanUtils.cleanWords("unbc");
-	private static final String UNBC_REPLACEMENT = CleanUtils.cleanWordsReplacement("UNBC");
+	private static final Cleaner UNBC_ = new Cleaner(
+			Cleaner.matchWords("unbc"),
+			"UNBC",
+			true
+	);
 
-	private static final Pattern KRSS_ = CleanUtils.cleanWords("krss");
-	private static final String KRSS_REPLACEMENT = CleanUtils.cleanWordsReplacement("KRSS");
+	private static final Cleaner KRSS_ = new Cleaner(
+			Cleaner.matchWords("krss"),
+			"KRSS",
+			true
+	);
 
 	@NotNull
 	@Override
 	public String cleanTripHeadsign(@NotNull String tripHeadsign) {
-		tripHeadsign = _DASH_.matcher(tripHeadsign).replaceAll(SPACE_);
+		tripHeadsign = _DASH_.clean(tripHeadsign);
 		tripHeadsign = CleanUtils.keepToAndRemoveVia(tripHeadsign);
-		tripHeadsign = KRSS_.matcher(tripHeadsign).replaceAll(KRSS_REPLACEMENT);
-		tripHeadsign = UNBC_.matcher(tripHeadsign).replaceAll(UNBC_REPLACEMENT);
+		tripHeadsign = KRSS_.clean(tripHeadsign);
+		tripHeadsign = UNBC_.clean(tripHeadsign);
 		tripHeadsign = CleanUtils.cleanBounds(tripHeadsign);
 		tripHeadsign = CleanUtils.cleanStreetTypes(tripHeadsign);
 		tripHeadsign = CleanUtils.cleanNumbers(tripHeadsign);
@@ -157,8 +170,8 @@ public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools 
 	@NotNull
 	@Override
 	public String cleanStopName(@NotNull String gStopName) {
-		gStopName = KRSS_.matcher(gStopName).replaceAll(KRSS_REPLACEMENT);
-		gStopName = UNBC_.matcher(gStopName).replaceAll(UNBC_REPLACEMENT);
+		gStopName = KRSS_.clean(gStopName);
+		gStopName = UNBC_.clean(gStopName);
 		gStopName = CleanUtils.CLEAN_AND.matcher(gStopName).replaceAll(CleanUtils.CLEAN_AND_REPLACEMENT);
 		gStopName = CleanUtils.CLEAN_AT.matcher(gStopName).replaceAll(CleanUtils.CLEAN_AT_REPLACEMENT);
 		gStopName = CleanUtils.cleanBounds(gStopName);
