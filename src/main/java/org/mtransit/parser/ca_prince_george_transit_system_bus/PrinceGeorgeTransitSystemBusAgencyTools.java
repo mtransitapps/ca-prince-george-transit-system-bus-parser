@@ -51,7 +51,12 @@ public class PrinceGeorgeTransitSystemBusAgencyTools extends DefaultAgencyTools 
 
 	@Override
 	public boolean useRouteShortNameForRouteId() {
-		return true;
+		return false; // route ID used by GTFS RT
+	}
+
+	@Override
+	public @Nullable String getRouteIdCleanupRegex() {
+		return "\\-[A-Z]+$";
 	}
 
 	@Override
